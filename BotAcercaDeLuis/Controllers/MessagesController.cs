@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using System;
 
 namespace BotAcercaDeLuis
 {
@@ -18,11 +19,14 @@ namespace BotAcercaDeLuis
         {
             if (activity.Type == ActivityTypes.Message)
             {
-                await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+                await Conversation.SendAsync(activity, () => new Dialogs.MeBotLuisDialog());
             }
             else
             {
-                HandleSystemMessage(activity);
+                ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+                var reply = HandleSystemMessage(activity);
+                if (reply != null)
+                    await connector.Conversations.ReplyToActivityAsync(reply);
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
@@ -37,9 +41,13 @@ namespace BotAcercaDeLuis
             }
             else if (message.Type == ActivityTypes.ConversationUpdate)
             {
-                // Handle conversation state changes, like members being added and removed
-                // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
-                // Not available in all channels
+                string replyMessage = string.Empty;
+                replyMessage += "Hola\n\n";
+                replyMessage += "Soy un bot que da informacion sobre Luis Beltran.\n";
+                replyMessage += "Por ejemplo puedes preguntar: \n";
+                replyMessage += "'Quien es Luis Beltran'\n\n";
+                replyMessage += "Con el tiempo seré más inteligente ^_^";
+                return message.CreateReply(replyMessage);
             }
             else if (message.Type == ActivityTypes.ContactRelationUpdate)
             {
